@@ -38,6 +38,12 @@ public interface ProcurementRepository {
 
     Optional<PurchaseOrder> orderByKey(String idempotencyKey);
 
+    /** Orders of a store whose idempotency key starts with {@code prefix}, oldest first. */
+    List<PurchaseOrder> ordersByKeyPrefix(String store, String prefix);
+
+    /** Transaction-scoped lock serialising callers that share one replenishment raise key. */
+    void lockRaiseKey(String key);
+
     List<PurchaseOrder> orders(String store);
 
     Optional<Receipt> receipt(UUID poId, String ref);

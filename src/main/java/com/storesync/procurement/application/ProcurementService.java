@@ -214,6 +214,11 @@ public class ProcurementService {
     public Replenishment replenishment(Caller caller, String store, String raiseKey) {
         caller.requireStore(store, Role.MANAGER);
         stores.store(store);
+        List<PurchaseOrder> already = List.of();
+        if (raiseKey != null) {
+            repo.lockRaiseKey(store + ":" + raiseKey);
+            already = repo.ordersByKeyPrefix(store, raiseKey + ":");
+        }
         var cfg = props.replenishment();
         var planner = new ReplenishmentPlanner(cfg.alpha(), cfg.serviceZ(), cfg.reviewDays());
         LocalDate today = BusinessZone.today(clock);
@@ -236,7 +241,9 @@ public class ProcurementService {
                     planner.plan(demand, s.leadTimeDays(), have, coming)));
         }
         var raised = new ArrayList<PurchaseOrder>();
-        if (raiseKey != null) {
+        if (!already.isEmpty()) {
+            raised.addAll(already);
+        } else if (raiseKey != null) {
             var bySupplier = new TreeMap<UUID, List<NewLine>>();
             var cost = new HashMap<String, BigDecimal>();
             products.forEach(p -> cost.put(p.sku(), p.cost() == null ? Money.ZERO : p.cost()));

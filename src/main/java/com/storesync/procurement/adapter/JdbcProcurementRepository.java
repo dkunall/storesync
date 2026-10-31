@@ -77,6 +77,18 @@ class JdbcProcurementRepository implements ProcurementRepository {
     }
 
     @Override
+    public List<PurchaseOrder> ordersByKeyPrefix(String store, String prefix) {
+        String like = prefix.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
+        return db.sql(ORDER + " where store_code = ? and idem_key like ? escape '\\' order by created_at, id")
+                .params(store, like).query((rs, i) -> withLines(rs)).list();
+    }
+
+    @Override
+    public void lockRaiseKey(String key) {
+        db.sql("select pg_advisory_xact_lock(hashtextextended(?, 7301))").param("raise:" + key).query((rs, i) -> 1).list();
+    }
+
+    @Override
     public Optional<PurchaseOrder> orderByKey(String key) {
         return db.sql(ORDER + " where idem_key = ?").param(key).query((rs, i) -> withLines(rs)).optional();
     }
