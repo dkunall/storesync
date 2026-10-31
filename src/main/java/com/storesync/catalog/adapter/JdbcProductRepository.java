@@ -17,7 +17,7 @@ import java.util.UUID;
 class JdbcProductRepository implements ProductRepository {
 
     private static final String SELECT = """
-            select sku, barcode, name, hsn, tax_rate, price, cost, supplier_id, low_stock_level, active from product """;
+            select sku, barcode, name, hsn, tax_rate, price, cost, supplier_id, low_stock_level, active from product\s""";
     private static final RowMapper<Product> ROW = (rs, i) -> new Product(rs.getString(1), rs.getString(2),
             rs.getString(3), rs.getString(4), rs.getBigDecimal(5), rs.getBigDecimal(6), rs.getBigDecimal(7),
             rs.getObject(8, UUID.class), rs.getInt(9), rs.getBoolean(10));

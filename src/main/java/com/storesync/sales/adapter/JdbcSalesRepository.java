@@ -27,10 +27,10 @@ class JdbcSalesRepository implements SalesRepository {
     private static final String SALE = """
             select id, store_code, terminal_id, shift_id, local_seq, channel, invoice_no, status, cashier,
                    place_of_supply, customer_gstin, gross, discount, taxable, cgst, sgst, igst, total, change_due,
-                   refunded, request_hash, sold_at, synced_at from sale """;
+                   refunded, request_hash, sold_at, synced_at from sale\s""";
     private static final String SHIFT = """
             select id, store_code, terminal_id, cashier, status, opening_float, opened_at, closed_at, declared_sales,
-                   counted_cash, expected_cash, variance from shift """;
+                   counted_cash, expected_cash, variance from shift\s""";
 
     private static final RowMapper<Sale> SALE_ROW = (rs, i) -> new Sale(rs.getObject(1, UUID.class), rs.getString(2),
             rs.getObject(3, UUID.class), rs.getObject(4, UUID.class), (Long) rs.getObject(5),

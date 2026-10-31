@@ -18,7 +18,7 @@ import java.util.UUID;
 class JdbcPromotionRepository implements PromotionRepository {
 
     private static final String SELECT = """
-            select id, code, type, rules::text, priority, stackable, starts_at, ends_at, active from promotion """;
+            select id, code, type, rules::text, priority, stackable, starts_at, ends_at, active from promotion\s""";
 
     private final JdbcClient db;
     private final ObjectMapper json;
