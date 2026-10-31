@@ -3,11 +3,12 @@ package com.storesync.shared.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.util.List;
 
 @ConfigurationProperties("storesync")
 public record StoreSyncProperties(Security security, Sales sales, Sync sync, Invoices invoices,
-                                  Replenishment replenishment, Alerts alerts) {
+                                  Replenishment replenishment, Alerts alerts, Cache cache) {
 
     /** Head-office subjects. Store staff and terminals live in the database instead. */
     public record Security(List<String> adminSubjects) {
@@ -36,5 +37,9 @@ public record StoreSyncProperties(Security security, Sales sales, Sync sync, Inv
 
     /** @param shrinkageUnits a count this far below the book raises a SHRINKAGE alert */
     public record Alerts(long shrinkageUnits, BigDecimal cashVariance) {
+    }
+
+    /** How long a barcode lookup stays in Redis. Product updates evict it straight away. */
+    public record Cache(Duration barcodeTtl) {
     }
 }

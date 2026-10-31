@@ -1,0 +1,86 @@
+spring:
+  application:
+    name: storesync
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    url: ${STORESYNC_DB_URL:jdbc:postgresql://localhost:5432/storesync}
+    username: ${STORESYNC_DB_USER:storesync}
+    password: ${STORESYNC_DB_PASSWORD:}
+    hikari:
+      maximum-pool-size: 20
+  flyway:
+    enabled: true
+  kafka:
+    bootstrap-servers: ${STORESYNC_KAFKA:localhost:9092}
+    producer:
+      acks: all
+      properties:
+        enable.idempotence: true
+        linger.ms: 5
+    consumer:
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+    listener:
+      ack-mode: record
+  data:
+    redis:
+      host: ${STORESYNC_REDIS_HOST:localhost}
+      port: ${STORESYNC_REDIS_PORT:6379}
+      timeout: 500ms
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${STORESYNC_ISSUER:http://localhost:8080/default}
+  servlet:
+    multipart:
+      enabled: false
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+server:
+  port: ${STORESYNC_PORT:8080}
+  shutdown: graceful
+  tomcat:
+    max-swallow-size: 2MB
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health:
+    redis:
+      # The barcode cache is optional: lookups fall back to Postgres, so Redis being down must not fail readiness.
+      enabled: false
+
+storesync:
+  security:
+    admin-subjects: ${STORESYNC_ADMIN_SUBJECTS:}
+  sales:
+    cashier-max-discount-percent: 10
+    manager-max-discount-percent: 30
+  sync:
+    batch-max: 500
+    op-versions: [ 1, 2 ]
+  invoices:
+    block-size: ${STORESYNC_INVOICE_BLOCK:100}
+  replenishment:
+    alpha: 0.3
+    history-days: 28
+    service-z: 1.65
+    review-days: 7
+  alerts:
+    shrinkage-units: 3
+    cash-variance: 100.00
+  cache:
+    barcode-ttl: PT10M
+  jobs:
+    enabled: ${STORESYNC_JOBS_ENABLED:true}
