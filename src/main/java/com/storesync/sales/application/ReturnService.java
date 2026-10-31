@@ -128,10 +128,21 @@ public class ReturnService {
             Line l = byNo.get(e.getKey());
             int q = e.getValue();
             BigDecimal taxable = Refunds.prorate(l.taxable(), l.qty(), l.returnedQty(), l.refundedTaxable(), q);
-            BigDecimal cgst = Refunds.prorate(l.cgst(), l.qty(), l.returnedQty(), l.refundedCgst(), q);
-            BigDecimal sgst = Refunds.prorate(l.sgst(), l.qty(), l.returnedQty(), l.refundedSgst(), q);
-            BigDecimal igst = Refunds.prorate(l.igst(), l.qty(), l.returnedQty(), l.refundedIgst(), q);
-            BigDecimal amount = taxable.add(cgst).add(sgst).add(igst);
+            // The refund is the line total prorated; tax components are fitted inside it so that rounding each
+            // component separately can never refund a paisa more (or less) than the units cost.
+            BigDecimal amount = Refunds.prorate(l.total(), l.qty(), l.returnedQty(), l.refunded(), q);
+            BigDecimal cgst;
+            BigDecimal sgst;
+            BigDecimal igst;
+            if (l.igst().signum() > 0) {
+                cgst = Money.ZERO;
+                sgst = Money.ZERO;
+                igst = amount.subtract(taxable);
+            } else {
+                cgst = Refunds.prorate(l.cgst(), l.qty(), l.returnedQty(), l.refundedCgst(), q);
+                sgst = amount.subtract(taxable).subtract(cgst);
+                igst = Money.ZERO;
+            }
             amounts.put(l.lineNo(), amount);
             total = total.add(amount);
             changed.add(new Line(l.lineNo(), l.sku(), l.qty(), l.unitPrice(), l.taxRate(), l.promoDiscount(),
