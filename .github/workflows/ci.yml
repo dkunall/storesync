@@ -1,0 +1,68 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Unit, architecture and integration tests
+        run: mvn -B -ntp verify
+      - name: Keep test reports
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-reports
+          path: |
+            target/surefire-reports
+            target/failsafe-reports
+
+  image:
+    runs-on: ubuntu-latest
+    needs: test
+    timeout-minutes: 30
+    env:
+      # up.sh writes fresh secrets here; the file stays on the runner and is never printed.
+      STORESYNC_ENV_FILE: /tmp/storesync-ci.env
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build image
+        run: docker build -t storesync:local .
+      - name: Scan image
+        # Pinned by commit: earlier trivy-action tags were hijacked in March 2026.
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
+        with:
+          image-ref: storesync:local
+          version: v0.69.3
+          severity: CRITICAL,HIGH
+          trivyignores: .trivyignore
+          ignore-unfixed: true
+          exit-code: '1'
+      - name: Compose smoke test
+        run: |
+          WAIT=400 ./scripts/up.sh --no-build
+          ./scripts/demo.sh
+          N=150 ./scripts/bench.sh
+      - name: Compose logs
+        if: failure()
+        run: docker compose --env-file "$STORESYNC_ENV_FILE" logs --tail 200 || true
+      - name: Tear down
+        if: always()
+        run: test -f "$STORESYNC_ENV_FILE" && docker compose --env-file "$STORESYNC_ENV_FILE" down -v || true

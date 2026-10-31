@@ -1,0 +1,5 @@
+# Both findings are in spring-webmvc 6.2.x and only fixed in 7.0.x (Spring Boot 4), which this project does not target.
+# CVE-2026-47884: XsltView path handling. StoreSync renders no views and has no XsltView.
+CVE-2026-47884
+# CVE-2026-47890: SSE stream corruption with view rendering. StoreSync exposes no Server-Sent Events endpoints.
+CVE-2026-47890
