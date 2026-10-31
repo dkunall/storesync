@@ -314,7 +314,7 @@ public class SalesService {
         data.put("total", sale.total().toPlainString());
         data.put("tax", priced.tax().toPlainString());
         data.put("lines", lines.stream().map(l -> Map.of("sku", l.sku(), "qty", l.qty(),
-                "net", l.total().toPlainString(),
+                "net", l.taxable().toPlainString(),
                 "tax", l.cgst().add(l.sgst()).add(l.igst()).toPlainString())).toList());
         outbox.append(Outbox.SALES, sale.store(), "SaleCompleted", data);
     }

@@ -149,7 +149,7 @@ public class ReturnService {
                     l.manualDiscount(), l.taxable(), l.cgst(), l.sgst(), l.igst(), l.total(), l.returnedQty() + q,
                     l.refunded().add(amount), l.refundedTaxable().add(taxable), l.refundedCgst().add(cgst),
                     l.refundedSgst().add(sgst), l.refundedIgst().add(igst)));
-            eventLines.add(Map.of("sku", l.sku(), "qty", q, "net", amount.toPlainString(),
+            eventLines.add(Map.of("sku", l.sku(), "qty", q, "net", taxable.toPlainString(),
                     "tax", cgst.add(sgst).add(igst).toPlainString()));
         }
         var after = new TreeMap<>(byNo);
