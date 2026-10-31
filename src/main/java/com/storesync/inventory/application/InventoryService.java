@@ -179,6 +179,7 @@ public class InventoryService {
         if (lines.isEmpty() || lines.values().stream().anyMatch(q -> q == null || q <= 0)) {
             throw ApiException.invalid("Transfer lines need positive quantities");
         }
+        repo.lockTransferId(id);
         var existing = repo.transfer(id, false);
         if (existing.isPresent()) {
             var t = existing.get();

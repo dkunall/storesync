@@ -155,4 +155,10 @@ class JdbcStockRepository implements StockRepository {
         db.sql("insert into stock_count (id, store_code, sku, book, counted, by_subject, at) values (?, ?, ?, ?, ?, ?, ?)")
                 .params(c.id(), c.store(), c.sku(), c.book(), c.counted(), c.by(), Timestamp.from(c.at())).update();
     }
+
+    @Override
+    public void lockTransferId(UUID id) {
+        db.sql("select pg_advisory_xact_lock(hashtextextended(?, 7302))").param("transfer:" + id)
+                .query((rs, i) -> 1).list();
+    }
 }

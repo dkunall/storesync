@@ -41,4 +41,7 @@ public interface StockRepository {
     Optional<StockCount> count(UUID id);
 
     void insertCount(StockCount c);
+
+    /** Transaction-scoped lock so retries of one transfer id wait for the first instead of colliding on insert. */
+    void lockTransferId(UUID id);
 }
