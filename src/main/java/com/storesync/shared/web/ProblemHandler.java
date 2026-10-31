@@ -48,6 +48,13 @@ public class ProblemHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(problem(HttpStatus.CONFLICT, "version-conflict", e.getMessage()));
     }
 
+    /** Deadlock victim or lock timeout: nothing was written, and the same request can be sent again. */
+    @ExceptionHandler(org.springframework.dao.PessimisticLockingFailureException.class)
+    ResponseEntity<ProblemDetail> lockLost(org.springframework.dao.PessimisticLockingFailureException e) {
+        ProblemDetail body = problem(HttpStatus.CONFLICT, "lock-conflict", "Concurrent update; retry the request");
+        return ResponseEntity.status(HttpStatus.CONFLICT).header(HttpHeaders.RETRY_AFTER, "1").body(body);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     ResponseEntity<ProblemDetail> badArgument(IllegalArgumentException e) {
         return ResponseEntity.badRequest().body(problem(HttpStatus.BAD_REQUEST, "invalid-request", e.getMessage()));
